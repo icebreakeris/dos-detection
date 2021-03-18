@@ -45,7 +45,7 @@ class ICMPProtect():
 			#if it is, calculate its rate based on the time of last packet
 			rate = time.time() - self.incoming_ip[addr]["time_of_last_packet"]
 
-			#if the rate is lower than what we accept, then ban the ip address
+			#if the rate is quicker than what we accept, then ban the ip address
 			if rate <= self.acceptable_rate:
 				print(f"[{datetime.now()}] {addr} exceeded acceptable rate ({self.acceptable_rate}): {rate}")
 				self.ban_ip_address(addr)
@@ -97,45 +97,50 @@ def main():
 
 	choices = ["Start protection", "View banned IP addresses", "Ban an IP address", "Unban an IP address", "Flush banlist", "Exit"]
 	protect = ICMPProtect(acceptable_rate=0.01, packet_limit=25, timeout=1)
-	cached_addresses = []
+	banned_addresses = []
 	os.system("clear")
 	while True:
 		print("\nICMP Flood protection toolkit\nDeveloped by Mindaugas Baltrimas (18677185)\n")
 		for i, j in enumerate(choices):
 			print(i, j)
 		choice = int(input("choice: "))
+
 		if choice==0:
 			os.system("clear")
 			print("\nStarting ICMP flood protection")
 			protect.start()
+
 		elif choice==1:
 			os.system("clear")
 			print("\nBanned ip addresses: ")
-			cached_addresses = protect.get_banned_addresses()
-			for i,j in enumerate(cached_addresses):
+			banned_addresses = protect.get_banned_addresses()
+			for i,j in enumerate(banned_addresses):
 				print(i, j)
+
 		elif choice==2:
 			os.system("clear")
 			address = input("\nEnter an address to ban (xxx.xxx.xxx.xxx): ")
 			if bool(re.match(IP_REGEX, address)):
 				protect.ban_ip_address(address)
+
 		elif choice==3:
 			os.system("clear")
-			if not cached_addresses:
-				print("Getting addresses...")
-				cached_addresses = protect.get_banned_addresses()
-			for i, j in enumerate(cached_addresses):
+			banned_addresses = protect.get_banned_addresses()
+			for i, j in enumerate(banned_addresses):
 				print(i, j)
+
 			choice = int(input("Address to unban: "))
 			if choice is not None:
-				protect.unban_ip_address(cached_addresses[choice])
-				cached_addresses.remove(cached_addresses[choice])
+				protect.unban_ip_address(banned_addresses[choice])
+
 		elif choice==4:
 			os.system("clear")
 			os.system("iptables --flush")
 			print("Banlist flushed!")
+
 		elif choice==5:
 			exit()
+
 		else:
 			print("\nInvalid choice.")
 
